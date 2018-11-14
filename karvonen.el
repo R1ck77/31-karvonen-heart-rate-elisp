@@ -34,6 +34,13 @@
   (insert (karvonen--format-entry percentage bpm))
   (redisplay))
 
+(defun karvonen--read-input (prompt)
+  (let ((raw-value (read-from-minibuffer prompt)))
+    (if (string-match "^[0-9]+$" raw-value)
+        (string-to-int raw-value)
+      (message "Invalid input '%s'" raw-value)
+      (karvonen--read-input prompt))))
+
 (defun karvonen--show-buffer (restingHR age)
   (interactive)
   (pop-to-buffer (get-buffer-create karvonen--buffer-name))
@@ -41,6 +48,11 @@
   (insert (karvonen--header restingHR age))
   (seq-map (lambda (intensity)
              (karvonen--insert-entry intensity
-                                     (karvonen-formula restingHR age intensity)
-                                     ))
+                                     (karvonen-formula restingHR age intensity)))
            (karvonen--create-loop karvonen--min-percent karvonen--max-percent)))
+
+(defun karvonen ()
+  (interactive)
+  (karvonen--show-buffer
+   (karvonen--read-input "resting heart rate: ")
+   (karvonen--read-input "age: ")))
