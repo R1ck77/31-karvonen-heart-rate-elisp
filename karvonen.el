@@ -3,13 +3,15 @@
 
 (defconst karvonen--buffer-name "* Karvonen Output *")
 (defconst karvonen--left-column-size 15)
+(defconst karvonen--min-percent 55)
+(defconst karvonen--max-percent 95)
 
 (defun karvonen-formula (restingHR age intensity)
   (+ (* (- 220 age restingHR)
         intensity)
      restingHR))
 
-(defun karvonen-create--loop (min max)
+(defun karvonen--create-loop (min max)
   (let ((value min)
         (output (list))) 
     (while (< value max)
@@ -23,10 +25,22 @@
           (format (concat "%-" (number-to-string karvonen--left-column-size) "s|%s") "Intensity" "Rate\n")
           (make-string karvonen--left-column-size ?-) "+------\n"))
 
+(defun karvonen--format-entry (percentage bpm)
+  (format (concat "%-" (number-to-string karvonen--left-column-size) "s| %sbpm\n")
+          percentage
+          bpm))
 
+(defun karvonen--insert-entry (percentage bpm)
+  (insert (karvonen--format-entry percentage bpm))
+  (redisplay))
 
-(defun karvonen--show-buffer ()
-  (when (get-buffer karvonen--buffer-name)
-    (kill-buffer karvonen--buffer-name))
-  (switch-to-buffer (get-buffer-create karvonen--buffer-name))
-  (insert "foobar"))
+(defun karvonen--show-buffer (restingHR age)
+  (interactive)
+  (pop-to-buffer (get-buffer-create karvonen--buffer-name))
+  (erase-buffer)
+  (insert (karvonen--header restingHR age))
+  (seq-map (lambda (intensity)
+             (karvonen--insert-entry intensity
+                                     (karvonen-formula restingHR age intensity)
+                                     ))
+           (karvonen--create-loop karvonen--min-percent karvonen--max-percent)))
