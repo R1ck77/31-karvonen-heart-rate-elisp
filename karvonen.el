@@ -8,13 +8,13 @@
 
 (defun karvonen-formula (restingHR age intensity)
   (+ (* (- 220 age restingHR)
-        intensity)
+        (/ intensity 100.0))
      restingHR))
 
 (defun karvonen--create-loop (min max)
   (let ((value min)
         (output (list))) 
-    (while (< value max)
+    (while (<= value max)
       (setq output (append (list value) output))
       (setq value (+ value 5)))
     (reverse output)))
@@ -26,9 +26,9 @@
           (make-string karvonen--left-column-size ?-) "+------\n"))
 
 (defun karvonen--format-entry (percentage bpm)
-  (format (concat "%-" (number-to-string karvonen--left-column-size) "s| %sbpm\n")
-          percentage
-          bpm))
+  (format (concat "%-" (number-to-string karvonen--left-column-size) "s| %dbpm\n")
+          (concat (number-to-string percentage) "%")
+          (round bpm 1)))
 
 (defun karvonen--insert-entry (percentage bpm)
   (insert (karvonen--format-entry percentage bpm))
