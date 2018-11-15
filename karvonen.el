@@ -32,7 +32,7 @@
 
 (defun karvonen--insert-entry (percentage bpm)
   (insert (karvonen--format-entry percentage bpm))
-  (redisplay))
+  (sit-for 0.05))
 
 (defun karvonen--read-input (prompt)
   (let ((raw-value (read-from-minibuffer prompt)))
@@ -46,6 +46,7 @@
   (pop-to-buffer (get-buffer-create karvonen--buffer-name))
   (erase-buffer)
   (insert (karvonen--header restingHR age))
+  (sit-for 0.05)
   (seq-map (lambda (intensity)
              (karvonen--insert-entry intensity
                                      (karvonen-formula restingHR age intensity)))
