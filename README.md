@@ -10,5 +10,5 @@ Eval ``karvonen.el`` and then then execute the command ``M-x karvonen``.
 
 Enter your base heart rate, your age and watch the magic unfold.
 
-Then sigh, murmur "meh" and go doing something better.
+Then sigh, murmur "meh" and go find something better to do.
 
