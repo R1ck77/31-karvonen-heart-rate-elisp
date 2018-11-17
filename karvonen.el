@@ -2,12 +2,13 @@
 ;;; Karvonen Heart Rate
 
 (defconst karvonen--buffer-name "* Karvonen Output *")
+(defconst karvonen--maximum-heart-rate-per-gender '(("M" . 206.9) ("W" . 206)))
 (defconst karvonen--left-column-size 15)
 (defconst karvonen--min-percent 55)
 (defconst karvonen--max-percent 95)
 
-(defun karvonen-formula (restingHR age intensity)
-  (+ (* (- 220 age restingHR)
+(defun karvonen-formula (maximumHR restingHR age intensity)
+  (+ (* (- maximumHR age restingHR)
         (/ intensity 100.0))
      restingHR))
 
@@ -41,7 +42,7 @@
       (message "Invalid input '%s'" raw-value)
       (karvonen--read-input prompt))))
 
-(defun karvonen--show-buffer (restingHR age)
+(defun karvonen--show-buffer (maxHR restingHR age)
   (interactive)
   (pop-to-buffer (get-buffer-create karvonen--buffer-name))
   (erase-buffer)
@@ -49,11 +50,24 @@
   (sit-for 0.05)
   (seq-map (lambda (intensity)
              (karvonen--insert-entry intensity
-                                     (karvonen-formula restingHR age intensity)))
+                                     (karvonen-formula maxHR restingHR age intensity)))
            (karvonen--create-loop karvonen--min-percent karvonen--max-percent)))
+
+(defun karvonen--read-gender (prompt)
+  (let ((raw-value (read-from-minibuffer prompt)))
+    (if (string-match "^[mMwW].*$" raw-value)
+        (upcase (substring raw-value 0 1))
+      (message "Invalid input '%s'" raw-value)
+      (karvonen--read-gender prompt))))
+
+(defun karvonen--get-maximum-heart-rate ()
+  (cdr
+   (assoc (karvonen--read-gender "Are you biologically a man or a woman? ")
+          karvonen--maximum-heart-rate-per-gender)))
 
 (defun karvonen ()
   (interactive)
   (karvonen--show-buffer
-   (karvonen--read-input "resting heart rate: ")
-   (karvonen--read-input "age: ")))
+   (karvonen--get-maximum-heart-rate)
+   (karvonen--read-input "Resting heart rate: ")
+   (karvonen--read-input "Age: ")))
