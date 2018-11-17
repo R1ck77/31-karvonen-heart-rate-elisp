@@ -26,10 +26,23 @@
           (format (concat "%-" (number-to-string karvonen--left-column-size) "s|%s") "Intensity" "Rate\n")
           (make-string karvonen--left-column-size ?-) "+------\n"))
 
+(defun karvonen--colorize (text color)
+  (put-text-property 0 (length text) 'font-lock-face (list ':foreground color) text)
+  text)
+
+(defun karvonen--color-for-percentage (percentage)
+  (cond
+   ((< percentage 65) "blue")
+   ((<= percentage 85) "green")
+   (t "red")))
+
+(defun karvonen--colorize-text (percentage text)
+  (karvonen--colorize text (karvonen--color-for-percentage percentage)))
+
 (defun karvonen--format-entry (percentage bpm)
-  (format (concat "%-" (number-to-string karvonen--left-column-size) "s| %dbpm\n")
-          (concat (number-to-string percentage) "%")
-          (round bpm 1)))
+  (format (concat "%-" (number-to-string karvonen--left-column-size) "s| %s\n")
+          (karvonen--colorize-text percentage (concat (number-to-string percentage) "%"))
+          (karvonen--colorize-text percentage (format "%d bpm" (round bpm 1)))))
 
 (defun karvonen--insert-entry (percentage bpm)
   (insert (karvonen--format-entry percentage bpm))
@@ -45,6 +58,7 @@
 (defun karvonen--show-buffer (maxHR restingHR age)
   (interactive)
   (pop-to-buffer (get-buffer-create karvonen--buffer-name))
+  (font-lock-mode)
   (erase-buffer)
   (insert (karvonen--header restingHR age))
   (sit-for 0.05)
